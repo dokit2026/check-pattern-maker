@@ -10,6 +10,8 @@ const state = {
   lines: []
 };
 
+let screenHistory = [0];
+
 const screens = document.querySelectorAll(".screen");
 const previewCaption = document.getElementById("previewCaption");
 const startBtn = document.getElementById("startBtn");
@@ -62,7 +64,11 @@ if (!hasCatOption) {
   lineType.appendChild(catOption);
 }
 
-function showScreen(number) {
+function showScreen(number, saveHistory = true) {
+  if (saveHistory && state.screen !== number) {
+    screenHistory.push(number);
+  }
+
   state.screen = number;
 
   screens.forEach((screen) => {
@@ -79,6 +85,19 @@ function showScreen(number) {
   if (number === 4) {
     renderLineList();
   }
+}
+
+function goBackScreen() {
+  if (screenHistory.length <= 1) {
+    showScreen(0, false);
+    return;
+  }
+
+  screenHistory.pop();
+
+  const previousScreen = screenHistory[screenHistory.length - 1];
+
+  showScreen(previousScreen, false);
 }
 
 function updateCurrentLineTitle() {
@@ -295,12 +314,10 @@ function drawCat(x, y, size, rotate) {
   ctx.rotate(rotate);
   ctx.scale(size / 20, size / 20);
 
-  // 顔
   ctx.beginPath();
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
   ctx.fill();
 
-  // 左耳
   ctx.beginPath();
   ctx.moveTo(-6, -4);
   ctx.lineTo(-10, -12);
@@ -308,7 +325,6 @@ function drawCat(x, y, size, rotate) {
   ctx.closePath();
   ctx.fill();
 
-  // 右耳
   ctx.beginPath();
   ctx.moveTo(6, -4);
   ctx.lineTo(10, -12);
@@ -316,7 +332,6 @@ function drawCat(x, y, size, rotate) {
   ctx.closePath();
   ctx.fill();
 
-  // ひげ
   ctx.strokeStyle = ctx.fillStyle;
   ctx.lineWidth = 1.2;
 
@@ -419,199 +434,315 @@ function localSuggestion(idea) {
     };
   }
 
-  return {
+ return {
+
     lineType: "straight",
+
     color: "#8b5e3c",
+
     thickness: 8,
+
     gap: 96,
+
     opacity: 0.75,
+
     reason: "落ち着いた印象に合わせてまっすぐ線にしました。"
+
   };
+
 }
 
 function applySuggestion(suggestion) {
+
   lineType.value = suggestion.lineType;
+
   lineColor.value = suggestion.color;
+
   thickness.value = suggestion.thickness;
+
   gap.value = suggestion.gap;
-    opacity.value = suggestion.opacity;
+
+  opacity.value = suggestion.opacity;
 
   updateRangeLabels();
 
   aiResult.textContent =
+
     `AI提案：${lineTypeNames[suggestion.lineType]}。${suggestion.reason}`;
 
   drawPattern(getCurrentLineSetting());
+
 }
 
 function renderLineList() {
+
   lineList.innerHTML = "";
 
   state.lines.forEach((line, index) => {
+
     const li = document.createElement("li");
 
     li.textContent =
+
       `${index + 1}本目：` +
+
       `${orientationNames[line.orientation]}・` +
+
       `${lineTypeNames[line.type]}・` +
+
       `太さ${line.thickness}px・` +
+
       `間隔${line.gap}px`;
 
     lineList.appendChild(li);
+
   });
+
 }
 
 function resetLineInputs() {
+
   const nextOrientation =
+
     state.currentLineIndex % 2 === 0 ? "vertical" : "horizontal";
 
   setOrientation(nextOrientation);
 
   lineType.value = "straight";
+
   lineColor.value =
+
     state.currentLineIndex % 2 === 0 ? "#8b5e3c" : "#b98276";
+
   thickness.value = 8;
+
   gap.value = 96;
+
   opacity.value = 0.75;
 
   updateRangeLabels();
+
 }
 
 startBtn.addEventListener("click", () => {
+
   showScreen(1);
+
 });
 
 document.querySelectorAll("[data-next]").forEach((button) => {
+
   button.addEventListener("click", () => {
+
     showScreen(state.screen + 1);
+
   });
+
 });
 
 document.querySelectorAll("[data-back]").forEach((button) => {
+
   button.addEventListener("click", () => {
-    showScreen(Math.max(0, state.screen - 1));
+
+    goBackScreen();
+
   });
+
 });
 
 baseColorButtons.addEventListener("click", (event) => {
+
   const button = event.target.closest("[data-color]");
+
   if (!button) return;
 
   state.baseColor = button.dataset.color;
+
   baseColorInput.value = state.baseColor;
 
   document.querySelectorAll(".color-chip").forEach((chip) => {
+
     chip.classList.remove("selected");
+
   });
 
   button.classList.add("selected");
 
   drawPattern();
+
 });
 
 baseColorInput.addEventListener("input", () => {
+
   state.baseColor = baseColorInput.value;
 
   document.querySelectorAll(".color-chip").forEach((chip) => {
+
     chip.classList.remove("selected");
+
   });
 
   drawPattern();
+
 });
 
 minusLine.addEventListener("click", () => {
+
   state.targetLines = Math.max(1, state.targetLines - 1);
+
   lineCount.textContent = state.targetLines;
+
 });
 
 plusLine.addEventListener("click", () => {
+
   state.targetLines = Math.min(8, state.targetLines + 1);
+
   lineCount.textContent = state.targetLines;
+
 });
 
 orientationButtons.forEach((button) => {
+
   button.addEventListener("click", () => {
+
     setOrientation(button.dataset.orientation);
+
   });
+
 });
 
 [thickness, gap, opacity, lineType, lineColor].forEach((input) => {
+
   input.addEventListener("input", () => {
+
     updateRangeLabels();
+
     drawPattern(getCurrentLineSetting());
+
   });
+
 });
 
 aiBtn.addEventListener("click", () => {
+
   const idea = ideaInput.value.trim();
 
   if (!idea) {
+
     aiResult.textContent =
+
       "先に「ねこ」「ふわふわ」「レトロ」みたいな線のイメージを入力してね。";
+
     return;
+
   }
 
   aiBtn.disabled = true;
+
   aiBtn.textContent = "AI生成中...";
+
   aiResult.textContent = "線のイメージを考えています...";
 
   setTimeout(() => {
+
     try {
+
       const suggestion = localSuggestion(idea);
+
       applySuggestion(suggestion);
+
     } catch (error) {
+
       console.error(error);
+
       aiResult.textContent =
+
         "エラーが出たので、もう一度入力して試してね。";
+
     } finally {
+
       aiBtn.disabled = false;
+
       aiBtn.textContent = "AIで線を生成";
+
     }
+
   }, 500);
+
 });
 
 addLineBtn.addEventListener("click", () => {
+
   const newLine = getCurrentLineSetting();
 
   state.lines.push(newLine);
+
   state.currentLineIndex += 1;
 
   drawPattern();
 
   if (state.currentLineIndex >= state.targetLines) {
+
     showScreen(4);
+
   } else {
+
     resetLineInputs();
+
     updateCurrentLineTitle();
+
   }
+
 });
 
 downloadBtn.addEventListener("click", () => {
+
   const link = document.createElement("a");
+
   link.download = "check-pattern.png";
+
   link.href = canvas.toDataURL("image/png");
+
   link.click();
+
 });
 
 resetBtn.addEventListener("click", () => {
+
   state.screen = 0;
+
   state.baseColor = "#f8efe2";
+
   state.targetLines = 4;
+
   state.currentOrientation = "vertical";
+
   state.currentLineIndex = 0;
+
   state.lines = [];
 
+  screenHistory = [0];
+
   lineCount.textContent = state.targetLines;
+
   baseColorInput.value = state.baseColor;
 
   document.querySelectorAll(".color-chip").forEach((chip) => {
+
     chip.classList.toggle("selected", chip.dataset.color === state.baseColor);
+
   });
 
   resetLineInputs();
+
   drawPattern();
-  showScreen(0);
+
+  showScreen(0, false);
+
 });
 
 resetLineInputs();
+
 drawPattern();
+  
