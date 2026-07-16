@@ -52,7 +52,7 @@ const orientationNames = {
   horizontal: "よこ"
 };
 
-/* HTMLにねこ線の選択肢がなければ自動で追加 */
+/* HTMLにねこ線の選択肢がなければ自動追加 */
 const hasCatOption = Array.from(lineType.options).some((option) => {
   return option.value === "cat";
 });
@@ -134,6 +134,18 @@ function getCurrentLineSetting() {
   };
 }
 
+function loadLineToInputs(line) {
+  setOrientation(line.orientation);
+
+  lineType.value = line.type;
+  lineColor.value = line.color;
+  thickness.value = line.thickness;
+  gap.value = line.gap;
+  opacity.value = line.opacity;
+
+  updateRangeLabels();
+}
+
 function drawPattern(tempLine = null) {
   const w = canvas.width;
   const h = canvas.height;
@@ -150,9 +162,9 @@ function drawPattern(tempLine = null) {
   });
 
   previewCaption.textContent =
-    state.lines.length === 0
+    allLines.length === 0
       ? "まだ線はありません"
-      : `${state.lines.length}本の線を重ねています`;
+      : `${allLines.length}本の線を重ねています`;
 }
 
 function drawRepeatedLine(line, index) {
@@ -336,19 +348,14 @@ function drawCat(x, y, size, rotate) {
   ctx.lineWidth = 1.2;
 
   ctx.beginPath();
-
   ctx.moveTo(-8, 1);
   ctx.lineTo(-14, -1);
-
   ctx.moveTo(-8, 3);
   ctx.lineTo(-14, 4);
-
   ctx.moveTo(8, 1);
   ctx.lineTo(14, -1);
-
   ctx.moveTo(8, 3);
   ctx.lineTo(14, 4);
-
   ctx.stroke();
 
   ctx.restore();
@@ -419,22 +426,35 @@ function localSuggestion(idea) {
     };
   }
 
-  if (
+if (
+
     text.includes("手書き") ||
+
     text.includes("ラフ") ||
+
     text.includes("ゆる")
+
   ) {
+
     return {
+
       lineType: "hand",
+
       color: "#6c4a3c",
+
       thickness: 6,
+
       gap: 88,
+
       opacity: 0.75,
+
       reason: "ゆるい印象に合わせて手書き風線にしました。"
+
     };
+
   }
 
- return {
+  return {
 
     lineType: "straight",
 
@@ -543,6 +563,22 @@ document.querySelectorAll("[data-next]").forEach((button) => {
 document.querySelectorAll("[data-back]").forEach((button) => {
 
   button.addEventListener("click", () => {
+
+    if (state.screen === 3 && state.currentLineIndex > 0) {
+
+      const previousLine = state.lines.pop();
+
+      state.currentLineIndex -= 1;
+
+      updateCurrentLineTitle();
+
+      loadLineToInputs(previousLine);
+
+      drawPattern(getCurrentLineSetting());
+
+      return;
+
+    }
 
     goBackScreen();
 
@@ -745,4 +781,3 @@ resetBtn.addEventListener("click", () => {
 resetLineInputs();
 
 drawPattern();
-  
