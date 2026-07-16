@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Check Pattern Maker</title>
+
+  <!-- Google Fonts：かわいい丸ゴシック -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main class="phone">
+
+    <!-- タイトル部分 -->
+    <header class="top">
+      <h1 class="main-title">Check Pattern Maker</h1>
+    </header>
+
+    <!-- チェック柄のプレビュー -->
+    <section class="preview-card">
+      <canvas id="patternCanvas" width="700" height="700"></canvas>
+      <p class="preview-caption" id="previewCaption">No lines yet</p>
+    </section>
+
+    <!-- STEP 0：スタート画面 -->
+    <section class="screen active" data-screen="0">
+      <h2>チェック柄を作ろう</h2>
+
+  
+      <button class="primary-btn" id="startBtn">
+        はじめる
+      </button>
+    </section>
+
+    <!-- STEP 1：ベースカラー選択 -->
+    <section class="screen" data-screen="1">
+      <div class="step-label">STEP 1</div>
+
+      <h2>布地の色を選ぶ</h2>
+
+      <p>
+        チェック柄のベースになる色を選んでね。
+      </p>
+
+      <div class="color-grid" id="baseColorButtons">
+        <button
+          class="color-chip selected"
+          data-color="#f8efe2"
+          style="--chip:#f8efe2"
+        >
+          ivory
+        </button>
+
+        <button
+          class="color-chip"
+          data-color="#f3dec4"
+          style="--chip:#f3dec4"
+        >
+          beige
+        </button>
+
+        <button
+          class="color-chip"
+          data-color="#f8d8d0"
+          style="--chip:#f8d8d0"
+        >
+          pink
+        </button>
+
+        <button
+          class="color-chip"
+          data-color="#dfe8d4"
+          style="--chip:#dfe8d4"
+        >
+          green
+        </button>
+
+        <button
+          class="color-chip"
+          data-color="#d9e5f2"
+          style="--chip:#d9e5f2"
+        >
+          blue
+        </button>
+
+        <button
+          class="color-chip"
+          data-color="#f2e0a7"
+          style="--chip:#f2e0a7"
+        >
+          yellow
+        </button>
+      </div>
+
+      <label class="field">
+        好きな色を直接選ぶ
+        <input type="color" id="baseColorInput" value="#f8efe2" />
+      </label>
+
+      <div class="button-row">
+        <button class="ghost-btn" data-back>
+          戻る
+        </button>
+
+        <button class="primary-btn" data-next>
+          次へ
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 2：線の本数選択 -->
+    <section class="screen" data-screen="2">
+      <div class="step-label">STEP 2</div>
+
+      <h2>線の本数を決める</h2>
+
+      <p>
+        何本の線を重ねてチェック柄にする？
+      </p>
+
+      <div class="count-area">
+        <button class="round-btn" id="minusLine">&minus;</button>
+
+        <div class="count-number">
+          <span id="lineCount">4</span>
+          <small>lines</small>
+        </div>
+
+        <button class="round-btn" id="plusLine">＋</button>
+      </div>
+
+      <p class="hint">
+        8本まで線を登録できるよ。
+      </p>
+
+      <div class="button-row">
+        <button class="ghost-btn" data-back>
+          戻る
+        </button>
+
+        <button class="primary-btn" data-next>
+          線を作る
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3：AIで線のイメージ生成 -->
+    <section class="screen" data-screen="3">
+      <div class="step-label">STEP 3</div>
+
+      <h2>
+        <span id="currentLineTitle">1本目</span>の線を作る
+      </h2>
+
+      <p>
+        AIが言葉からイメージの線を作ってくれるよ。
+      </p>
+
+      <div class="ai-box">
+        <label class="field">
+          線のイメージ
+          <input
+            id="ideaInput"
+            type="text"
+            placeholder="例：ふわふわ、レトロ、京都のカフェっぽい"
+          />
+        </label>
+
+        <button class="secondary-btn" id="aiBtn">
+          AIで線を生成
+        </button>
+
+        <p class="ai-result" id="aiResult">
+          まだAI提案はありません
+        </p>
+      </div>
+
+      <div class="segmented">
+        <button class="seg selected" data-orientation="vertical">
+          たて線
+        </button>
+
+        <button class="seg" data-orientation="horizontal">
+          よこ線
+        </button>
+      </div>
+
+      <label class="field">
+        線の種類
+        <select id="lineType">
+          <option value="straight">まっすぐ線</option>
+          <option value="wave">ゆらゆら線</option>
+          <option value="dot">点線</option>
+          <option value="heart">ハート線</option>
+          <option value="hand">手書き風線</option>
+        </select>
+      </label>
+
+      <label class="field inline-field">
+        線の色
+        <input type="color" id="lineColor" value="#8b5e3c" />
+      </label>
+
+      <label class="field">
+        太さ <span id="thicknessValue">8</span>px
+        <input type="range" id="thickness" min="2" max="28" value="8" />
+      </label>
+
+      <label class="field">
+        間隔 <span id="gapValue">96</span>px
+        <input type="range" id="gap" min="36" max="180" value="96" />
+      </label>
+
+      <label class="field">
+        透明度 <span id="opacityValue">0.75</span>
+        <input
+          type="range"
+          id="opacity"
+          min="0.2"
+          max="1"
+          step="0.05"
+          value="0.75"
+        />
+      </label>
+
+      <div class="button-row">
+        <button class="ghost-btn" data-back>
+          戻る
+        </button>
+
+        <button class="primary-btn" id="addLineBtn">
+          この線を追加
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 4：完成画面 -->
+    <section class="screen" data-screen="4">
+      <div class="step-label">FINISH</div>
+
+      <h2>チェック柄が完成！</h2>
+
+      <p>
+        「画像として保存」でPNG画像にできるよ。
+      </p>
+
+      <div class="finish-actions">
+        <button class="primary-btn" id="downloadBtn">
+          画像として保存
+        </button>
+
+        <button class="ghost-btn" id="resetBtn">
+          もう一度作る
+        </button>
+      </div>
+
+      <div class="line-list">
+        <h3>使った線</h3>
+        <ul id="lineList"></ul>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
